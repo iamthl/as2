@@ -31,6 +31,18 @@ let maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ];
 
+// Load initial data from LocalStorage or create an empty array
+let leaderboard = JSON.parse(localStorage.getItem('leaderboardData')) || [];
+
+// ... (display leaderboard in your HTML)
+
+// Function to add new score
+function addScore(name, score) {
+  leaderboard.push({ name, score });
+  localStorage.setItem('leaderboardData', JSON.stringify(leaderboard));
+  // ... (update the displayed leaderboard)
+}
+
 let playerPosition = { row: 1, column: 1 }; // Initial player position in the maze
 
 
