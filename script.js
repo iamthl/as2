@@ -5,6 +5,18 @@ let rightPressed = false;
 
 const main = document.querySelector('main');
 
+//Start button
+let startButton = document.querySelector('.start');
+
+function startGame() {
+    startButton.style.display = 'none';
+    document.addEventListener('keydown', keyDown);
+    document.addEventListener('keyup', keyUp);
+    startEnemyMovement();
+
+}
+startButton.addEventListener('click', startGame);
+
 //Player = 2, Wall = 1, Enemy = 3, Point = 0, 
 let maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -161,8 +173,10 @@ function renderMaze() {
 
 renderMaze();
 
+let enemyMovementInterval;
+
 function startEnemyMovement() {
-    setInterval(() => {
+    enemyMovementInterval = setInterval(() => {
         moveEnemies(maze, enemies);
     }, 500);
 }
@@ -247,16 +261,6 @@ document.getElementById('rbttn').addEventListener('mouseup', function () {
     rightPressed = false;
 });
 
-// function pointCollect() {
-//     if (maze[playerPosition.row][playerPosition.column] === 0) {
-//         maze[playerPosition.row][playerPosition.column] = 2;
-//         for (let i = 0; i < points.length; i++) {
-//             points[i].classList.remove('point');
-//         }
-//         updateScore();
-
-//     }
-// }
 
 setInterval(function () {
     let newPosition = { row: playerPosition.row, column: playerPosition.column };
@@ -319,114 +323,6 @@ function pointCollect() {
     }
 };
 
-// const player = document.querySelector('#player');
-// const playerMouth = player.querySelector('.mouth');
-// let playerTop = 0;
-// let playerLeft = 0;
-// // let playerTop = playerPosition.row;
-// // let playerLeft = playerPosition.column;
-
-// setInterval(function () {
-//     // let newPosition = { row: playerPosition.row, column: playerPosition.column };
-//     if (downPressed) {
-//         let position = player.getBoundingClientRect()
-//         let newBottom = position.bottom + 1;
-
-//         let btmL = document.elementFromPoint(position.left, newBottom);
-//         let btmR = document.elementFromPoint(position.right, newBottom);
-
-//         if (btmL.classList.contains('wall') == false && btmR.classList.contains('wall') == false) {
-//             playerTop++;
-//             player.style.top = playerTop + 'px';
-//         }
-
-//         playerMouth.classList = 'down';
-//     }
-//     else if (upPressed) {
-//         let position = player.getBoundingClientRect()
-//         let newTop = position.top - 1;
-
-//         let topL = document.elementFromPoint(position.left, newTop);
-//         let topR = document.elementFromPoint(position.right, newTop);
-
-//         if (topL.classList.contains('wall') == false && topR.classList.contains('wall') == false) {
-//             playerTop--;
-//             player.style.top = playerTop + 'px';
-//         }
-
-//         playerMouth.classList = 'up';
-//     }
-//     else if (leftPressed) {
-//         let position = player.getBoundingClientRect()
-//         let newLeft = position.left - 1
-
-//         let leftTop = document.elementFromPoint(newLeft, position.top);
-//         let leftBottom = document.elementFromPoint(newLeft, position.bottom);
-
-//         if (leftTop.classList.contains('wall') == false && leftBottom.classList.contains('wall') == false) {
-//             playerLeft--;
-//             player.style.left = playerLeft + 'px';
-//         }
-//         playerMouth.classList = 'left';
-//     }
-//     else if (rightPressed) {
-//         let position = player.getBoundingClientRect()
-//         let newRight = position.right + 1
-
-//         let rightTop = document.elementFromPoint(newRight, position.top);
-//         let rightBottom = document.elementFromPoint(newRight, position.bottom);
-
-//         if (rightTop.classList.contains('wall') == false && rightBottom.classList.contains('wall') == false) {
-//             playerLeft++;
-//             player.style.left = playerLeft + 'px';
-//         }
-//         playerMouth.classList = 'right';
-//     }
-
-//     if (isDirectionOkay(newPosition, maze)) {
-//         maze[playerPosition.row][playerPosition.column] = 0;
-//         if (maze[newPosition.row][newPosition.column] === 3) {
-//             checkGameOver();
-//             gameOver();
-//             player.classList.add('dead');
-//             player.removeEventListener('keydown', keyDown);
-//             player.removeEventListener('keyup', keyUp);
-//             return; // Stop further execution
-//         }
-//         maze[newPosition.row][newPosition.column] = 2; // Set the new position
-//         playerPosition.row = newPosition.row;
-//         playerPosition.column = newPosition.column;
-//         pointCollect();
-//         console.log('Points collected');
-//     }
-    // renderMaze();
-//     pointCollect();
-//     checkGameOver();
-
-// }, 10);
-
-
-// //Points collision
-// function pointCollect() {
-//     const position = player.getBoundingClientRect();
-//     const points = document.querySelectorAll('.point');
-
-//     for (let i = 0; i < points.length; i++) {
-//         let pos = points[i].getBoundingClientRect();
-//         if (
-//             position.right > pos.left &&
-//             position.left < pos.right &&
-//             position.bottom > pos.top &&
-//             position.top < pos.bottom
-//         ) {
-//             points[i].classList.remove('point');
-//             updateScore();
-//             checkPoint();
-//             checkGameOver();
-//         }
-//     }
-// }
-
 //Update score
 let score = 0;
 const scoreDisplay = document.querySelector('.score p');
@@ -435,20 +331,6 @@ function updateScore() {
     score++;
     scoreDisplay.textContent = score;
 };
-
-//Start button
-let startButton = document.querySelector('.start');
-
-function startGame() {
-    startButton.style.display = 'none';
-    document.addEventListener('keydown', keyDown);
-    document.addEventListener('keyup', keyUp);
-    startEnemyMovement();
-
-}
-
-startButton.addEventListener('click', startGame);
-
 
 function checkPoint() {
     const pointsLeft = document.querySelectorAll('.point');
@@ -487,10 +369,37 @@ function checkGameOver() {
 
 function gameOver() {
     const message = document.createElement('div');
+    const player = document.querySelector('#player');
+
+    // Create restart button
+    const restartButton = document.createElement('div');
+    const restartText = document.createElement('h1');
+    restartText.textContent = 'Restart';
+    restartButton.appendChild(restartText);
+    restartButton.classList.add('restart');
+
+    // Append restart button to startDiv
+    const startDiv = document.querySelector('.startDiv');
+    startDiv.appendChild(restartButton);
+    restartButton.removeEventListener('click', restartGame);
+
+
     player.classList.add('dead');
     message.classList.add('gameOver');
     message.textContent = 'Game over!';
+
     document.body.appendChild(message);
     document.removeEventListener('keydown', keyDown);
     document.removeEventListener('keyup', keyUp);
+    clearInterval(enemyMovementInterval);
 }
+
+function restartGame() {
+    // Remove the restart button
+    const restartButton = document.querySelector('button');
+    restartButton.parentNode.removeChild(restartButton);
+    startGame();
+}
+restartButton.addEventListener('click', restartGame);
+
+
