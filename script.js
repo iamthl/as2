@@ -43,7 +43,7 @@ function randomEnemy() {
     } while (maze[row][column] === 1 || maze[row][column] === 3 || maze[row][column] === 2);
 
     maze[row][column] = 3;
-    return { row, column, previousDirection: null , previousState: 0};
+    return { row, column, previousDirection: null, previousState: 0 };
 }
 
 let enemies = [];
@@ -104,8 +104,8 @@ function moveEnemies(maze, enemies) {
                     gameOver();
                     return;
                 }
-                if(maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4 )
-                enemy.previousState = maze[newPos.row][newPos.column];
+                if (maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4)
+                    enemy.previousState = maze[newPos.row][newPos.column];
                 maze[newPos.row][newPos.column] = 3; // Set the new position
 
                 // Update enemy's position
@@ -263,7 +263,7 @@ document.getElementById('rbttn').addEventListener('mouseup', function () {
 
 let mainInterval;
 
-function main_interval(){
+function main_interval() {
 
     mainInterval = setInterval(function () {
         let newPosition = { row: playerPosition.row, column: playerPosition.column };
@@ -282,7 +282,7 @@ function main_interval(){
             if (maze[newPosition.row][newPosition.column] === 3) {
                 checkGameOver();
                 gameOver();
-                return; 
+                return;
             }
             maze[newPosition.row][newPosition.column] = 2;
             playerPosition.row = newPosition.row;
@@ -310,7 +310,7 @@ function pointCollect() {
     for (let i = 0; i < points.length; i++) {
         let pointRect = points[i].getBoundingClientRect();
         // console.log(pointRect)
-        
+
         if (
             playerRect.right > pointRect.left &&
             playerRect.left < pointRect.right &&
@@ -410,4 +410,17 @@ function restartGame() {
 }
 // restartButton.removeEventListener('click', restartGame);
 
+// Character colour customize
+const player = document.querySelector('#player');
+const colours = document.querySelectorAll('aside li');
 
+colours.forEach(colour => {
+    colour.addEventListener('click', function() {
+        player.style.backgroundColor = colour.id;
+    });
+});
+
+// Close aside 
+document.getElementById('closeside').addEventListener('click', function () {
+    document.querySelector('aside').style.display = 'none';
+});
