@@ -51,8 +51,8 @@ for (let i = 0; i < 3; i++) {
     enemies.push(randomEnemy());
 }
 
-function chooseDirection() {
-    const directions = ['up', 'down', 'left', 'right'];
+function chooseDirection(directions) {
+    // const directions = ['up', 'down', 'left', 'right'];
     return directions[Math.floor(Math.random() * directions.length)];
 }
 
@@ -86,18 +86,22 @@ function moveEnemies(maze, enemies) {
         let moved = false;
 
         // Remove the previous direction from the options
-        directions = directions.filter(dir => dir !== enemy.previousDirection);
+        // directions = directions.filter(dir => dir !== enemy.previousDirection);
 
         while (directions.length > 0 && !moved) {
-            let newDirection = chooseDirection();
+            let newDirection = chooseDirection(directions);
             let newPos = nextPosition(enemy, newDirection);
 
             // console.log(`Attempt to move enemy from (${enemy.row}, ${enemy.column}) to (${newPos.row}, ${newPos.column})`);
 
             if (isDirectionOkay(newPos, maze)) {
                 // Update maze
+                if (maze[newPos.row][newPos.column] === 3) {
+                    directions = directions.filter(dir => dir !== newDirection); // Remove the invalid direction
+                    continue;
+                }
                 maze[enemy.row][enemy.column] = enemy.previousState; // Clear the old position
-
+                
                 if (maze[newPos.row][newPos.column] === 2) {
                     moved = true;
                     checkGameOver();
@@ -112,7 +116,6 @@ function moveEnemies(maze, enemies) {
                 enemy.row = newPos.row;
                 enemy.column = newPos.column;
                 enemy.previousDirection = newDirection; // Store the new direction as previous
-                renderMaze();
 
                 // console.log(`Enemy moved to (${enemy.row}, ${enemy.column})`);
                 moved = true;
@@ -126,6 +129,7 @@ function moveEnemies(maze, enemies) {
             // console.log(`Enemy at (${enemy.row}, ${enemy.column}) can not move in any direction`);
         }
     });
+    renderMaze();
 }
 
 
@@ -261,6 +265,26 @@ document.getElementById('rbttn').addEventListener('mouseup', function () {
     rightPressed = false;
 });
 
+// function pointCollect() {
+//     if (maze[playerPosition.row][playerPosition.column] === 0) {
+//         maze[playerPosition.row][playerPosition.column] = 2;
+//         for (let i = 0; i < points.length; i++) {
+//             points[i].classList.remove('point');
+//         }
+//         updateScore();
+
+//     }
+// }
+function init_total_points(enemies){
+    let prev_points = document.querySelectorAll('.point').length;
+    enemies.forEach(e => {
+        if(e.previousState === 0) prev_points++;
+    })
+    return prev_points;
+}
+
+let prev_points = init_total_points(enemies);
+
 let mainInterval;
 
 function main_interval(){
@@ -287,7 +311,7 @@ function main_interval(){
             maze[newPosition.row][newPosition.column] = 2;
             playerPosition.row = newPosition.row;
             playerPosition.column = newPosition.column;
-            pointCollect();
+            prev_points = updatePoints(prev_points, enemies);
         }
 
         renderMaze();
@@ -300,13 +324,26 @@ main_interval();
 //     checkPoint();
 // }
 
+function updatePoints(prev_points, enemies) {
+    let new_points = document.querySelectorAll('.point').length;
+    enemies.forEach(e => {
+        if(e.previousState === 0) new_points++;
+    })
+    for(let i = 0; i < prev_points - new_points; i++){
+        updateScore();
+        checkPoint();
+    }
+    return new_points;
+}
+
 // Points collision
 function pointCollect() {
     const player = document.querySelector('#player');
     const playerRect = player.getBoundingClientRect();
+
     const points = document.querySelectorAll('.point');
     // console.log(playerRect)
-    // console.log(points)
+    console.log(points.length)
     for (let i = 0; i < points.length; i++) {
         let pointRect = points[i].getBoundingClientRect();
         // console.log(pointRect)
@@ -317,7 +354,6 @@ function pointCollect() {
             playerRect.bottom > pointRect.top &&
             playerRect.top < pointRect.bottom
         ) {
-            console.log("_______==============================================________________");
             // console.log(pointRect)
             // console.log(points[i])
             points[i].classList.remove('point');
@@ -363,7 +399,7 @@ function checkGameOver() {
     for (let { x, y } of directions) {
         let element1 = document.elementFromPoint(position.left + x, position.top + y);
         let element2 = document.elementFromPoint(position.left + x, position.bottom + y);
-
+        console.log(element1, x, y);
         if ((element1 && element1.classList.contains('enemy')) || (element2 && element2.classList.contains('enemy'))) {
             console.log(11111111111111111111111111);
             gameOver();
