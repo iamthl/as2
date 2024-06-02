@@ -7,7 +7,7 @@ const main = document.querySelector('main');
 
 //Start button
 let startButton = document.querySelector('.start');
-
+console.log(startButton)
 function startGame() {
     startButton.style.display = 'none';
     document.addEventListener('keydown', keyDown);
@@ -261,34 +261,39 @@ document.getElementById('rbttn').addEventListener('mouseup', function () {
     rightPressed = false;
 });
 
+let mainInterval;
 
-setInterval(function () {
-    let newPosition = { row: playerPosition.row, column: playerPosition.column };
-    if (downPressed) {
-        newPosition.row++;
-    } else if (upPressed) {
-        newPosition.row--;
-    } else if (leftPressed) {
-        newPosition.column--;
-    } else if (rightPressed) {
-        newPosition.column++;
-    }
+function main_interval(){
 
-    if (isDirectionOkay(newPosition, maze)) {
-        maze[playerPosition.row][playerPosition.column] = 4;
-        if (maze[newPosition.row][newPosition.column] === 3) {
-            checkGameOver();
-            gameOver();
-            return; 
+    mainInterval = setInterval(function () {
+        let newPosition = { row: playerPosition.row, column: playerPosition.column };
+        if (downPressed) {
+            newPosition.row++;
+        } else if (upPressed) {
+            newPosition.row--;
+        } else if (leftPressed) {
+            newPosition.column--;
+        } else if (rightPressed) {
+            newPosition.column++;
         }
-        maze[newPosition.row][newPosition.column] = 2;
-        playerPosition.row = newPosition.row;
-        playerPosition.column = newPosition.column;
-        pointCollect();
-    }
 
-    renderMaze();
-}, 100);
+        if (isDirectionOkay(newPosition, maze)) {
+            maze[playerPosition.row][playerPosition.column] = 4;
+            if (maze[newPosition.row][newPosition.column] === 3) {
+                checkGameOver();
+                gameOver();
+                return; 
+            }
+            maze[newPosition.row][newPosition.column] = 2;
+            playerPosition.row = newPosition.row;
+            playerPosition.column = newPosition.column;
+            pointCollect();
+        }
+
+        renderMaze();
+    }, 100);
+}
+main_interval();
 
 // function pointCollect() {
 //     updateScore();
@@ -381,9 +386,9 @@ function gameOver() {
     // Append restart button to startDiv
     const startDiv = document.querySelector('.startDiv');
     startDiv.appendChild(restartButton);
-    restartButton.removeEventListener('click', restartGame);
+    restartButton.addEventListener('click', restartGame);
 
-
+    console.log(restartButton)
     player.classList.add('dead');
     message.classList.add('gameOver');
     message.textContent = 'Game over!';
@@ -392,14 +397,17 @@ function gameOver() {
     document.removeEventListener('keydown', keyDown);
     document.removeEventListener('keyup', keyUp);
     clearInterval(enemyMovementInterval);
+    clearInterval(mainInterval);
 }
-
 function restartGame() {
     // Remove the restart button
-    const restartButton = document.querySelector('button');
-    restartButton.parentNode.removeChild(restartButton);
+    console.log(1111);
+    const restartButton = document.querySelector('.restart');
+    restartButton.style.display = 'none';
     startGame();
+    main_interval();
+
 }
-restartButton.addEventListener('click', restartGame);
+// restartButton.removeEventListener('click', restartGame);
 
 

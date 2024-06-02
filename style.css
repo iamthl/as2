@@ -257,4 +257,6 @@ button:nth-child(4) { grid-area: downArrow; }
     text-align: center;
     z-index: 1000;
     font-size: 2em;
+    height: auto;
+    align-self:flex-start;
 }
