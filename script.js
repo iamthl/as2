@@ -5,7 +5,7 @@ let rightPressed = false;
 
 const main = document.querySelector('main');
 
-//Player = 2, Wall = 1, Enemy = 3, Point = 0
+//Player = 2, Wall = 1, Enemy = 3, Point = 0, 
 let maze = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 2, 0, 1, 0, 0, 0, 0, 0, 1],
@@ -31,7 +31,7 @@ function randomEnemy() {
     } while (maze[row][column] === 1 || maze[row][column] === 3 || maze[row][column] === 2);
 
     maze[row][column] = 3;
-    return { row, column, previousDirection: null };
+    return { row, column, previousDirection: null , previousState: 0};
 }
 
 let enemies = [];
@@ -80,11 +80,11 @@ function moveEnemies(maze, enemies) {
             let newDirection = chooseDirection();
             let newPos = nextPosition(enemy, newDirection);
 
-            console.log(`Attempt to move enemy from (${enemy.row}, ${enemy.column}) to (${newPos.row}, ${newPos.column})`);
+            // console.log(`Attempt to move enemy from (${enemy.row}, ${enemy.column}) to (${newPos.row}, ${newPos.column})`);
 
             if (isDirectionOkay(newPos, maze)) {
                 // Update maze
-                maze[enemy.row][enemy.column] = 0; // Clear the old position
+                maze[enemy.row][enemy.column] = enemy.previousState; // Clear the old position
 
                 if (maze[newPos.row][newPos.column] === 2) {
                     moved = true;
@@ -92,7 +92,8 @@ function moveEnemies(maze, enemies) {
                     gameOver();
                     return;
                 }
-
+                if(maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4 )
+                enemy.previousState = maze[newPos.row][newPos.column];
                 maze[newPos.row][newPos.column] = 3; // Set the new position
 
                 // Update enemy's position
@@ -101,16 +102,16 @@ function moveEnemies(maze, enemies) {
                 enemy.previousDirection = newDirection; // Store the new direction as previous
                 renderMaze();
 
-                console.log(`Enemy moved to (${enemy.row}, ${enemy.column})`);
+                // console.log(`Enemy moved to (${enemy.row}, ${enemy.column})`);
                 moved = true;
             } else {
-                console.log(`Movement blocked by wall at (${newPos.row}, ${newPos.column})`);
+                // console.log(`Movement blocked by wall at (${newPos.row}, ${newPos.column})`);
                 directions = directions.filter(dir => dir !== newDirection); // Remove the invalid direction
             }
         }
 
         if (!moved) {
-            console.log(`Enemy at (${enemy.row}, ${enemy.column}) can not move in any direction`);
+            // console.log(`Enemy at (${enemy.row}, ${enemy.column}) can not move in any direction`);
         }
     });
 }
@@ -147,7 +148,7 @@ function renderMaze() {
                 case 3:
                     block.classList.add('enemy');
                     break;
-                default:
+                case 0:
                     block.classList.add('point');
                     block.style.height = '1vh';
                     block.style.width = '1vh';
@@ -193,44 +194,69 @@ function keyDown(event) {
 }
 
 // Player movement using GUI buttons
-document.getElementById('ubttn').addEventListener('click', function () {
+document.getElementById('ubttn').addEventListener('mousedown', function () {
     upPressed = true;
     downPressed = false;
     leftPressed = false;
     rightPressed = false;
 });
 
-document.getElementById('dbttn').addEventListener('click', function () {
+document.getElementById('ubttn').addEventListener('mouseup', function () {
+    upPressed = false;
+    downPressed = false;
+    leftPressed = false;
+    rightPressed = false;
+});
+
+document.getElementById('dbttn').addEventListener('mousedown', function () {
     upPressed = false;
     downPressed = true;
     leftPressed = false;
     rightPressed = false;
 });
+document.getElementById('dbttn').addEventListener('mouseup', function () {
+    upPressed = false;
+    downPressed = false;
+    leftPressed = false;
+    rightPressed = false;
+});
 
-document.getElementById('lbttn').addEventListener('click', function () {
+document.getElementById('lbttn').addEventListener('mousedown', function () {
     upPressed = false;
     downPressed = false;
     leftPressed = true;
     rightPressed = false;
 });
+document.getElementById('lbttn').addEventListener('mouseup', function () {
+    upPressed = false;
+    downPressed = false;
+    leftPressed = false;
+    rightPressed = false;
+});
 
-document.getElementById('rbttn').addEventListener('click', function () {
+document.getElementById('rbttn').addEventListener('mousedown', function () {
     upPressed = false;
     downPressed = false;
     leftPressed = false;
     rightPressed = true;
 });
+document.getElementById('rbttn').addEventListener('mouseup', function () {
+    upPressed = false;
+    downPressed = false;
+    leftPressed = false;
+    rightPressed = false;
+});
 
-function pointCollect() {
-    if (maze[playerPosition.row][playerPosition.column] === 0) {
-        maze[playerPosition.row][playerPosition.column] = 2;
-        for (let i = 0; i < points.length; i++) {
-            points[i].classList.remove('point');
-        }
-        updateScore();
+// function pointCollect() {
+//     if (maze[playerPosition.row][playerPosition.column] === 0) {
+//         maze[playerPosition.row][playerPosition.column] = 2;
+//         for (let i = 0; i < points.length; i++) {
+//             points[i].classList.remove('point');
+//         }
+//         updateScore();
 
-    }
-}
+//     }
+// }
 
 setInterval(function () {
     let newPosition = { row: playerPosition.row, column: playerPosition.column };
@@ -245,7 +271,7 @@ setInterval(function () {
     }
 
     if (isDirectionOkay(newPosition, maze)) {
-        maze[playerPosition.row][playerPosition.column] = 0;
+        maze[playerPosition.row][playerPosition.column] = 4;
         if (maze[newPosition.row][newPosition.column] === 3) {
             checkGameOver();
             gameOver();
@@ -260,21 +286,33 @@ setInterval(function () {
     renderMaze();
 }, 100);
 
+// function pointCollect() {
+//     updateScore();
+//     checkPoint();
+// }
+
 // Points collision
 function pointCollect() {
     const player = document.querySelector('#player');
     const playerRect = player.getBoundingClientRect();
     const points = document.querySelectorAll('.point');
-
+    // console.log(playerRect)
+    // console.log(points)
     for (let i = 0; i < points.length; i++) {
         let pointRect = points[i].getBoundingClientRect();
+        // console.log(pointRect)
+        
         if (
             playerRect.right > pointRect.left &&
             playerRect.left < pointRect.right &&
             playerRect.bottom > pointRect.top &&
             playerRect.top < pointRect.bottom
         ) {
+            console.log("_______==============================================________________");
+            // console.log(pointRect)
+            // console.log(points[i])
             points[i].classList.remove('point');
+            // console.log(points[i])
             updateScore();
             checkPoint();
         }
@@ -403,8 +441,8 @@ let startButton = document.querySelector('.start');
 
 function startGame() {
     startButton.style.display = 'none';
-    player.addEventListener('keydown', keyDown);
-    player.addEventListener('keyup', keyUp);
+    document.addEventListener('keydown', keyDown);
+    document.addEventListener('keyup', keyUp);
     startEnemyMovement();
 
 }
@@ -440,6 +478,7 @@ function checkGameOver() {
         let element2 = document.elementFromPoint(position.left + x, position.bottom + y);
 
         if ((element1 && element1.classList.contains('enemy')) || (element2 && element2.classList.contains('enemy'))) {
+            console.log(11111111111111111111111111);
             gameOver();
             break;
         }
