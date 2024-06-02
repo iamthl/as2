@@ -3,6 +3,7 @@ let downPressed = false;
 let leftPressed = false;
 let rightPressed = false;
 let userName;
+let livesRemain = 3;
 const main = document.querySelector('main');
 
 const label = document.createElement('label');
@@ -71,6 +72,7 @@ init_maze();
 let leaderboard = JSON.parse(localStorage.getItem('leaderboardData')) || [];
 
 renderLeaderboard();
+renderLives();
 
 // Generate random enemy position
 function randomEnemy() {
@@ -84,9 +86,44 @@ function randomEnemy() {
     return { row, column, previousDirection: null, previousState: 0 };
 }
 
+function generateRandomMaze(cols=10, rows=10, num_obs_inside=5) {
+    let maze = []
+    for (let i = 0; i < rows; i++) {
+        let row = [];  // Array to store numbers in the current row
+        for (let j = 0; j < cols; j++) {
+            if (i==0 || j==0 || i==cols-1 || j==rows-1){
+                row.push(1);
+            }
+            else if (i==1 && j==1){
+                row.push(2);
+
+            }
+
+            else{
+                t = Math.floor(Math.random() * ((cols-1)*(rows-1)/num_obs_inside))
+                if(t==0){
+                    row.push(1);
+                }
+                else{
+                    row.push(0)
+                }
+            }
+        }
+        maze.push(row);
+        console.log(row); // Print the row
+      }      
+    return maze;
+  }
+  
+function init_random_maze(){
+    maze = generateRandomMaze();
+    playerPosition = { row: 1, column: 1 };
+    for (let i = 0; i < 3; i++) {
+        enemies.push(randomEnemy());
+    }
+}
 
 function chooseDirection(directions) {
-    // const directions = ['up', 'down', 'left', 'right'];
     return directions[Math.floor(Math.random() * directions.length)];
 }
 
@@ -126,26 +163,24 @@ function moveEnemies(maze, enemies) {
             let newDirection = chooseDirection(directions);
             let newPos = nextPosition(enemy, newDirection);
 
-            // console.log(`Attempt to move enemy from (${enemy.row}, ${enemy.column}) to (${newPos.row}, ${newPos.column})`);
 
             if (isDirectionOkay(newPos, maze)) {
                 // Update maze
                 if (maze[newPos.row][newPos.column] === 3) {
-                    directions = directions.filter(dir => dir !== newDirection); // Remove the invalid direction
+                    directions = directions.filter(dir => dir !== newDirection); 
                     continue;
                 }
+                if(enemy.previousState === 0 || enemy.previousState === 4)
                 maze[enemy.row][enemy.column] = enemy.previousState; 
-                
                 if (maze[newPos.row][newPos.column] === 2) {
                     moved = true;
-                    checkGameOver();
                     enemy.previousState = maze[newPos.row][newPos.column];
-                    console.log("from enemy");
-                    gameOver();
+                    livesRemain--;
+                    console.log(livesRemain);
+                    livesRemain === 0 ? gameOver() : addHit(); 
+                 
                     
                 }
-                if(maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4){
-                enemy.previousState = maze[newPos.row][newPos.column];}
                 if (maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4)
                     enemy.previousState = maze[newPos.row][newPos.column];
                 maze[newPos.row][newPos.column] = 3; // Set the new position
@@ -155,16 +190,13 @@ function moveEnemies(maze, enemies) {
                 enemy.column = newPos.column;
                 enemy.previousDirection = newDirection; // Store the new direction as previous
 
-                // console.log(`Enemy moved to (${enemy.row}, ${enemy.column})`);
                 moved = true;
             } else {
-                // console.log(`Movement blocked by wall at (${newPos.row}, ${newPos.column})`);
                 directions = directions.filter(dir => dir !== newDirection); // Remove the invalid direction
             }
         }
 
         if (!moved) {
-            // console.log(`Enemy at (${enemy.row}, ${enemy.column}) can not move in any direction`);
         }
     });
     renderMaze();
@@ -195,9 +227,6 @@ function renderMaze() {
                     break;
                 case 2:
                     block.id = 'player';
-                    let mouth = document.createElement('div');
-                    mouth.classList.add('mouth');
-                    block.appendChild(mouth);
                     break;
                 case 3:
                     block.classList.add('enemy');
@@ -303,16 +332,7 @@ document.getElementById('rbttn').addEventListener('mouseup', function () {
     rightPressed = false;
 });
 
-// function pointCollect() {
-//     if (maze[playerPosition.row][playerPosition.column] === 0) {
-//         maze[playerPosition.row][playerPosition.column] = 2;
-//         for (let i = 0; i < points.length; i++) {
-//             points[i].classList.remove('point');
-//         }
-//         updateScore();
 
-//     }
-// }
 function init_total_points(enemies){
     let prev_points = document.querySelectorAll('.point').length;
     enemies.forEach(e => {
@@ -330,37 +350,32 @@ function main_interval() {
     mainInterval = setInterval(function () {
         let newPosition = { row: playerPosition.row, column: playerPosition.column };
         const player = document.querySelector('#player');
-        const mouthPlayer = player.querySelector('.mouth');
         if (downPressed) {
             newPosition.row++;
-            mouthPlayer.classList = 'down';
         } else if (upPressed) {
             newPosition.row--;
-            mouthPlayer.classList = 'up';
         } else if (leftPressed) {
             newPosition.column--;
-            mouthPlayer.classList = 'left';
         } else if (rightPressed) {
             newPosition.column++;
-            mouthPlayer.classList = 'right';
         }
 
         if (isDirectionOkay(newPosition, maze)) {
             maze[playerPosition.row][playerPosition.column] = 4;
             if (maze[newPosition.row][newPosition.column] === 3) {
-                checkGameOver();
-                console.log("from main");
-
-                gameOver();
+                livesRemain--;
+                console.log(livesRemain);
+                livesRemain === 0 ? gameOver() : addHit(); 
+                
                 return;
             }
             maze[newPosition.row][newPosition.column] = 2;
             playerPosition.row = newPosition.row;
             playerPosition.column = newPosition.column;
-            // prev_points = updatePoints(prev_points, enemies);
         }
 
         renderMaze();
+        renderLives();
     }, 100);
 }
 function update_point_interval(){
@@ -372,10 +387,6 @@ function update_point_interval(){
 main_interval();
 update_point_interval();
 
-// function pointCollect() {
-//     updateScore();
-//     checkPoint();
-// }
 
 function updatePoints(prev_points, enemies) {
     let new_points = document.querySelectorAll('.point').length;
@@ -383,9 +394,6 @@ function updatePoints(prev_points, enemies) {
         if(e.previousState === 0) new_points++;
     })
     for(let i = 0; i < prev_points - new_points; i++){
-        console.log("From update Points");
-        console.log(prev_points, new_points);
-
         updateScore();
         checkPoint();
     }
@@ -398,11 +406,9 @@ function pointCollect() {
     const playerRect = player.getBoundingClientRect();
 
     const points = document.querySelectorAll('.point');
-    // console.log(playerRect)
     console.log(points.length)
     for (let i = 0; i < points.length; i++) {
         let pointRect = points[i].getBoundingClientRect();
-        // console.log(pointRect)
 
         if (
             playerRect.right > pointRect.left &&
@@ -410,10 +416,8 @@ function pointCollect() {
             playerRect.bottom > pointRect.top &&
             playerRect.top < pointRect.bottom
         ) {
-            // console.log(pointRect)
-            // console.log(points[i])
+    
             points[i].classList.remove('point');
-            // console.log(points[i])
             updateScore();
             checkPoint();
         }
@@ -425,7 +429,6 @@ let score = 0;
 const scoreDisplay = document.querySelector('.score p');
 
 function updateScore() {
-    console.log(score)
     score++;
     scoreDisplay.textContent = score;
 };
@@ -447,27 +450,6 @@ function checkPoint() {
     }
 }
 
-function checkGameOver() {
-    const player = document.querySelector('#player');
-    const position = player.getBoundingClientRect();
-    const directions = [
-        { x: 0, y: 1 },
-        { x: 0, y: -1 },
-        { x: -1, y: 0 },
-        { x: 1, y: 0 }
-    ];
-
-    for (let { x, y } of directions) {
-        let element1 = document.elementFromPoint(position.left + x, position.top + y);
-        let element2 = document.elementFromPoint(position.left + x, position.bottom + y);
-        console.log(element1, x, y);
-        if ((element1 && element1.classList.contains('enemy')) || (element2 && element2.classList.contains('enemy'))) {
-            console.log(11111111111111111111111111);
-            gameOver();
-            break;
-        }
-    }
-}
 
 function stopEverything(){
     const player = document.querySelector('#player');
@@ -503,7 +485,6 @@ function gameOver() {
     document.body.appendChild(message);
 }
 function clearState() {
-    console.log(1111);
     const player = document.querySelector('#player');
     const gameOver = document.querySelector(".gameOver")
     const restartButton = document.querySelector('.restart');
@@ -520,11 +501,12 @@ function clearState() {
     enemies = [];
     score = -1;
     updateScore();
+    livesRemain = 3;
 
 }
 function restartGame() {
     clearState();
-    init_maze();
+    init_random_maze();
     startGame();
     main_interval();
 
@@ -545,7 +527,7 @@ function addScore(userName, score) {
 }
 
 function renderLeaderboard() {
-    const leaderboardList = document.querySelector('ol');
+    const leaderboardList = document.querySelector('.leaderboard ol');
     leaderboardList.innerHTML = ''; // Clear existing entries
 
     leaderboard.forEach(entry => {
@@ -554,6 +536,32 @@ function renderLeaderboard() {
         leaderboardList.appendChild(listItem);
     });
 }
+function renderLives() {
+    const liveList = document.querySelector('.lives ul');
+    liveList.innerHTML = ''; // Clear existing entries
+
+    for (let i = 0; i < livesRemain; i++){
+        const liveItem = document.createElement('li');
+        liveList.appendChild(liveItem);
+    }
+}
+
+function addHit(){
+    const player = document.querySelector("#player"); 
+    player.classList.add('hit');
+    console.log("Hit animation");
+    console.log(player);
+    // stopIntervalFor(mainInterval, mainInterval(), 1.5);
+
+}
+
+function stopIntervalFor(intervalId, intervalFunction, seconds) {
+    clearInterval(intervalId);  // Clear the existing interval
+  
+    setTimeout(() => {
+      intervalFunction; // Restart the interval after 'seconds'
+    }, seconds * 1000);
+  }
   
 // Character colour customize
 const player = document.querySelector('#player');
