@@ -143,6 +143,8 @@ div p {
 .point {
     border-radius: 100%;
     background-color: white;
+    position: relative;
+
 }
 
 .wall {
