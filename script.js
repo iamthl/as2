@@ -303,14 +303,20 @@ function main_interval() {
 
     mainInterval = setInterval(function () {
         let newPosition = { row: playerPosition.row, column: playerPosition.column };
+        const player = document.querySelector('#player');
+        const mouthPlayer = player.querySelector('.mouth');
         if (downPressed) {
             newPosition.row++;
+            mouthPlayer.classList = 'down';
         } else if (upPressed) {
             newPosition.row--;
+            mouthPlayer.classList = 'up';
         } else if (leftPressed) {
             newPosition.column--;
+            mouthPlayer.classList = 'left';
         } else if (rightPressed) {
             newPosition.column++;
+            mouthPlayer.classList = 'right';
         }
 
         if (isDirectionOkay(newPosition, maze)) {
