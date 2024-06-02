@@ -32,6 +32,11 @@ header {
     height: 100vh;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    z-index: 100;
+
+
+
 }
 
 .startDiv div {
@@ -43,6 +48,7 @@ header {
     padding: 20px 30px;
     display: flex;
     height: 32px;
+    flex-direction: row;
 }
 
 .startDiv h1 {
@@ -50,6 +56,9 @@ header {
 	font-size: 2em;
     text-decoration: none;
     margin-left: 10px;
+}
+.startDiv img {
+    object-fit: contain;
 }
 
 .restart div {
@@ -260,6 +269,16 @@ button:nth-child(4) { grid-area: downArrow; }
     height: auto;
     align-self:flex-start;
 }
+
+label {
+    pointer-events: none; /* Allow clicking through the label */
+    transition: all 0.2s ease; /* Smooth transition for the filled state */
+}
+
+label.filled {
+    color: gray;  /* Change the color */
+}
+
 
 aside {
     width: 270px;

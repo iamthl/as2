@@ -2,49 +2,74 @@ let upPressed = false;
 let downPressed = false;
 let leftPressed = false;
 let rightPressed = false;
-
+let userName;
 const main = document.querySelector('main');
 
+const label = document.createElement('label');
+label.textContent = 'Enter your name:';
+label.htmlFor = 'nameInput'; 
+
+const input = document.createElement('input');
+input.type = 'text';
+input.id = 'nameInput';
+input.placeholder = 'Your name'
+
+const startDiv = document.querySelector(".startDiv");
+startDiv.prepend(input);
+startDiv.prepend(label);
+
+input.addEventListener('input', () => {
+    input.placeholder = input.value; 
+    if (input.value !== '') {
+        input.style.backgroundColor = "#ccc"; 
+      } else {
+        input.style.backgroundColor = ''; 
+      }
+  });
+
+  
 //Start button
 let startButton = document.querySelector('.start');
-console.log(startButton)
 function startGame() {
     startButton.style.display = 'none';
+    input.style.display = 'none';
+    label.style.display = 'none';
+
     document.addEventListener('keydown', keyDown);
     document.addEventListener('keyup', keyUp);
     startEnemyMovement();
-
+    userName = input.value;
 }
 startButton.addEventListener('click', startGame);
 
 //Player = 2, Wall = 1, Enemy = 3, Point = 0, 
-let maze = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 2, 0, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    [1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-];
+let maze;
+let enemies = [];
+let playerPosition;
+function init_maze(){
+    maze = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 2, 0, 1, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+        [1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+        [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ];
+    playerPosition = { row: 1, column: 1 };
+    for (let i = 0; i < 3; i++) {
+        enemies.push(randomEnemy());
+    }
+}
+init_maze();
 
 // Load initial data from LocalStorage or create an empty array
 let leaderboard = JSON.parse(localStorage.getItem('leaderboardData')) || [];
 
-// ... (display leaderboard in your HTML)
-
-// Function to add new score
-function addScore(name, score) {
-  leaderboard.push({ name, score });
-  localStorage.setItem('leaderboardData', JSON.stringify(leaderboard));
-  // ... (update the displayed leaderboard)
-}
-
-let playerPosition = { row: 1, column: 1 }; // Initial player position in the maze
-
+renderLeaderboard();
 
 // Generate random enemy position
 function randomEnemy() {
@@ -58,10 +83,6 @@ function randomEnemy() {
     return { row, column, previousDirection: null, previousState: 0 };
 }
 
-let enemies = [];
-for (let i = 0; i < 3; i++) {
-    enemies.push(randomEnemy());
-}
 
 function chooseDirection(directions) {
     // const directions = ['up', 'down', 'left', 'right'];
@@ -112,14 +133,18 @@ function moveEnemies(maze, enemies) {
                     directions = directions.filter(dir => dir !== newDirection); // Remove the invalid direction
                     continue;
                 }
-                maze[enemy.row][enemy.column] = enemy.previousState; // Clear the old position
+                maze[enemy.row][enemy.column] = enemy.previousState; 
                 
                 if (maze[newPos.row][newPos.column] === 2) {
                     moved = true;
                     checkGameOver();
+                    enemy.previousState = maze[newPos.row][newPos.column];
+                    console.log("from enemy");
                     gameOver();
-                    return;
+                    
                 }
+                if(maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4){
+                enemy.previousState = maze[newPos.row][newPos.column];}
                 if (maze[newPos.row][newPos.column] == 0 || maze[newPos.row][newPos.column] == 4)
                     enemy.previousState = maze[newPos.row][newPos.column];
                 maze[newPos.row][newPos.column] = 3; // Set the new position
@@ -323,19 +348,28 @@ function main_interval() {
             maze[playerPosition.row][playerPosition.column] = 4;
             if (maze[newPosition.row][newPosition.column] === 3) {
                 checkGameOver();
+                console.log("from main");
+
                 gameOver();
                 return;
             }
             maze[newPosition.row][newPosition.column] = 2;
             playerPosition.row = newPosition.row;
             playerPosition.column = newPosition.column;
-            prev_points = updatePoints(prev_points, enemies);
+            // prev_points = updatePoints(prev_points, enemies);
         }
 
         renderMaze();
     }, 100);
 }
+function update_point_interval(){
+    setInterval(() => {
+        prev_points = updatePoints(prev_points, enemies);
+    }, 50);
+
+}
 main_interval();
+update_point_interval();
 
 // function pointCollect() {
 //     updateScore();
@@ -348,6 +382,9 @@ function updatePoints(prev_points, enemies) {
         if(e.previousState === 0) new_points++;
     })
     for(let i = 0; i < prev_points - new_points; i++){
+        console.log("From update Points");
+        console.log(prev_points, new_points);
+
         updateScore();
         checkPoint();
     }
@@ -387,6 +424,7 @@ let score = 0;
 const scoreDisplay = document.querySelector('.score p');
 
 function updateScore() {
+    console.log(score)
     score++;
     scoreDisplay.textContent = score;
 };
@@ -441,7 +479,8 @@ function gameOver() {
     const startDiv = document.querySelector('.startDiv');
     startDiv.appendChild(restartButton);
     restartButton.addEventListener('click', restartGame);
-
+    input.style.display = '';
+    label.style.display = '';
     console.log(restartButton)
     player.classList.add('dead');
     message.classList.add('gameOver');
@@ -452,18 +491,85 @@ function gameOver() {
     document.removeEventListener('keyup', keyUp);
     clearInterval(enemyMovementInterval);
     clearInterval(mainInterval);
+    addScore(userName, score);
 }
-function restartGame() {
-    // Remove the restart button
+function clearState() {
     console.log(1111);
+    const player = document.querySelector('#player');
+    const gameOver = document.querySelector(".gameOver")
     const restartButton = document.querySelector('.restart');
     restartButton.style.display = 'none';
+    restartButton.remove()
+    gameOver.style.display = 'none';
+    gameOver.remove();
+    if(player)
+    player.remove();
+    upPressed = false;
+    downPressed = false;
+    leftPressed = false;
+    rightPressed = false;
+    enemies = [];
+    score = -1;
+    updateScore();
+
+}
+function restartGame() {
+    clearState();
+    init_maze();
     startGame();
     main_interval();
 
 }
-// restartButton.removeEventListener('click', restartGame);
+function addScore(userName, score) {
 
+  
+    if (userName && !isNaN(score)) {
+
+      leaderboard.push({ userName, score });
+      // Sort leaderboard in descending order
+      leaderboard.sort((a, b) => b.score - a.score);
+      leaderboard = leaderboard.slice(0, 5);
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard)); // Save updated leaderboard
+      renderLeaderboard(); // Update the UI
+    }
+    console.log(leaderboard);
+}
+
+function renderLeaderboard() {
+    const leaderboardList = document.querySelector('ol');
+    leaderboardList.innerHTML = ''; // Clear existing entries
+
+    leaderboard.forEach(entry => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${entry.userName}..........${entry.score}`;
+        leaderboardList.appendChild(listItem);
+    });
+}
+  
+  // Load and display the leaderboard on page load
+
+// function movePacmanToStart(prev_maze){
+//     for (let y = 0; y < prev_maze.length; y++) {
+//         for (let x = 0; x < prev_maze[y].length; x++) {
+//             if (y === 1 && x === 1 && prev_maze[y][x] !== 2){
+//                 prev_maze[y][x] = 2;
+//                 console.log("Move to start");
+//                 console.log(prev_maze)
+                
+//             }
+//             else if (prev_maze[y][x] === 2){
+//                 // console.log(prev_maze);
+//                 console.log("++++++++++++++++==================");
+//                 console.log(y, x);
+//                 prev_maze[y][x] = 4;
+//                 console.log("updated to 4");
+//                 console.log(prev_maze);
+
+//             }
+//         }
+//     }
+//     return prev_maze;
+// }
 // Character colour customize
 const player = document.querySelector('#player');
 const colours = document.querySelectorAll('aside li');
