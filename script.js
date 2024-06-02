@@ -40,6 +40,7 @@ function startGame() {
     startEnemyMovement();
     userName = input.value;
 }
+
 startButton.addEventListener('click', startGame);
 
 //Player = 2, Wall = 1, Enemy = 3, Point = 0, 
@@ -431,14 +432,18 @@ function updateScore() {
 
 function checkPoint() {
     const pointsLeft = document.querySelectorAll('.point');
-
-    if (pointsLeft.length === 0) {
+    let hiddenPoints = 0;
+    enemies.forEach((e) => {
+        if (e.previousState === 0){
+            hiddenPoints++;
+        }
+    })
+    if (pointsLeft.length+hiddenPoints === 0) {
+        stopEverything();
         const message = document.createElement('div');
         message.classList.add('gameOver');
         message.textContent = 'You won!';
         document.body.appendChild(message);
-        player.removeEventListener('keydown', keyDown);
-        player.removeEventListener('keyup', keyUp);
     }
 }
 
@@ -464,8 +469,7 @@ function checkGameOver() {
     }
 }
 
-function gameOver() {
-    const message = document.createElement('div');
+function stopEverything(){
     const player = document.querySelector('#player');
 
     // Create restart button
@@ -483,15 +487,20 @@ function gameOver() {
     label.style.display = '';
     console.log(restartButton)
     player.classList.add('dead');
-    message.classList.add('gameOver');
-    message.textContent = 'Game over!';
-
-    document.body.appendChild(message);
     document.removeEventListener('keydown', keyDown);
     document.removeEventListener('keyup', keyUp);
     clearInterval(enemyMovementInterval);
     clearInterval(mainInterval);
     addScore(userName, score);
+}
+
+function gameOver() {
+    stopEverything();
+    const message = document.createElement('div');
+    message.classList.add('gameOver');
+    message.textContent = 'Game over!';
+
+    document.body.appendChild(message);
 }
 function clearState() {
     console.log(1111);
@@ -546,30 +555,6 @@ function renderLeaderboard() {
     });
 }
   
-  // Load and display the leaderboard on page load
-
-// function movePacmanToStart(prev_maze){
-//     for (let y = 0; y < prev_maze.length; y++) {
-//         for (let x = 0; x < prev_maze[y].length; x++) {
-//             if (y === 1 && x === 1 && prev_maze[y][x] !== 2){
-//                 prev_maze[y][x] = 2;
-//                 console.log("Move to start");
-//                 console.log(prev_maze)
-                
-//             }
-//             else if (prev_maze[y][x] === 2){
-//                 // console.log(prev_maze);
-//                 console.log("++++++++++++++++==================");
-//                 console.log(y, x);
-//                 prev_maze[y][x] = 4;
-//                 console.log("updated to 4");
-//                 console.log(prev_maze);
-
-//             }
-//         }
-//     }
-//     return prev_maze;
-// }
 // Character colour customize
 const player = document.querySelector('#player');
 const colours = document.querySelectorAll('aside li');
